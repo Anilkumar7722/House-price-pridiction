@@ -1,27 +1,35 @@
+# train_model.py
 import pandas as pd
 from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+import numpy as np
 import joblib
 
-# Sample dataset (replace with your real one)
-data = pd.DataFrame({
-    'area': [1000, 1500, 2000, 2500, 3000],
-    'bedrooms': [2, 3, 4, 3, 5],
-    'age': [10, 15, 20, 5, 25],
-    'garage': [1, 2, 2, 1, 3],
-    'bathrooms': [1, 2, 2, 1, 3],
-    'pool': [0, 1, 1, 0, 1],
-    'gym': [1, 1, 0, 0, 1],
-    'price': [200000, 300000, 400000, 250000, 500000]
-})
+# Load your CSV (area, bedrooms, age, garage, pool, gym, price)
+data = pd.read_csv("house_data.csv")
 
-# Features and target
-X = data[['area', 'bedrooms', 'age', 'garage', 'bathrooms', 'pool', 'gym']]
+# Use ONLY columns that exist in your CSV
+X = data[['area', 'bedrooms', 'age', 'garage', 'pool', 'gym']]
 y = data['price']
 
-# Train the model
-model = LinearRegression()
-model.fit(X, y)
+# Split into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 
-# Save the model
-joblib.dump(model, 'house_price_model.pkl')
-print("✅ Model saved successfully.")
+# Train Linear Regression model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Predict on test set
+y_pred = model.predict(X_test)
+
+# Calculate RMSE in a version-independent way
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+print("✅ Model trained. RMSE:", rmse)
+
+# Save trained model
+joblib.dump(model, "house_price_model.pkl")
+print("✅ Model saved as house_price_model.pkl")

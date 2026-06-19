@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🏠 House Price Prediction Result</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(255,255,255,0.05) 0%, transparent 50%);
+            animation: float 20s infinite alternate ease-in-out;
+            z-index: 0;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-5%, -5%) rotate(5deg); }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 25px 25px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25),
+                        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transition: transform 0.3s ease;
+            margin: 10px auto;
+            max-height: 98vh;
+            overflow-y: auto;
+        }
+
+        .card::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .card::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .card::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        @keyframes slideUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Image Slider */
+        .slider-container {
+            position: relative;
+            width: 100%;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            margin-bottom: 18px;
+            background: #000;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            width: 100%;
+        }
+
+        .slide {
+            min-width: 100%;
+            position: relative;
+            aspect-ratio: 16/9;
+        }
+
+        .slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .slide-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 25px 18px 15px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            color: white;
+        }
+
+        .slide-overlay h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 2px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .slide-overlay p {
+            font-size: 12px;
+            opacity: 0.9;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .slide-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #764ba2;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Slider Controls */
+        .slider-controls {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .slider-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .slider-dot.active {
+            background: white;
+            border-color: rgba(255,255,255,0.5);
+            transform: scale(1.3);
+        }
+
+        .slider-dot:hover {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .slider-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: none;
+            padding: 12px 8px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            z-index: 10;
+            border-radius: 10px;
+            width: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slider-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .slider-btn.prev {
+            left: 8px;
+        }
+
+        .slider-btn.next {
+            right: 8px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .header-icon {
+            font-size: 35px;
+            margin-bottom: 3px;
+            display: inline-block;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .header h2 {
+            font-size: 26px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        .header .subtitle {
+            color: #888;
+            font-size: 12px;
+            margin-top: 2px;
+            -webkit-text-fill-color: #888;
+        }
+
+        .price-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 18px;
+            padding: 20px 18px;
+            text-align: center;
+            margin-bottom: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .price-section::before {
+            content: '💰';
+            position: absolute;
+            right: -10px;
+            top: -10px;
+            font-size: 60px;
+            opacity: 0.1;
+        }
+
+        .price-label {
+            color: rgba(255,255,255,0.85);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .price-value {
+            color: white;
+            font-size: 38px;
+            font-weight: 800;
+            margin: 6px 0 3px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            word-break: break-word;
+        }
+
+        .price-currency {
+            color: rgba(255,255,255,0.9);
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .price-confidence {
+            color: rgba(255,255,255,0.7);
+            font-size: 11px;
+            margin-top: 3px;
+        }
+
+        .error-section {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 18px;
+            padding: 25px 20px;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .error-section h2 {
+            color: white;
+            font-size: 20px;
+            word-break: break-word;
+        }
+
+        .error-section p {
+            color: rgba(255,255,255,0.9);
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .detail-item {
+            background: #f8f9fa;
+            padding: 12px 10px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .detail-item:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+            border-color: #667eea;
+        }
+
+        .detail-icon {
+            font-size: 20px;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .detail-label {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #333;
+            margin-top: 3px;
+            word-break: break-word;
+        }
+
+        .info-banner {
+            text-align: center;
+            margin-bottom: 18px;
+            padding: 10px;
+            background: #f0f4ff;
+            border-radius: 10px;
+        }
+
+        .info-banner span {
+            color: #667eea;
+            font-size: 12px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            cursor: pointer;
+            flex: 1;
+            justify-content: center;
+            min-width: 120px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            border-color: #667eea;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .price-value {
+            animation: pulse 2s infinite;
+        }
+
+        .card::after {
+            content: '🏠';
+            position: absolute;
+            bottom: -15px;
+            right: -15px;
+            font-size: 80px;
+            opacity: 0.04;
+            pointer-events: none;
+        }
+
+        /* Mobile First - Extra Small Devices */
+        @media (max-width: 480px) {
+            .card {
+                padding: 18px 14px;
+                border-radius: 20px;
+                max-height: 98vh;
+            }
+
+            .slider-container {
+                border-radius: 14px;
+                margin-bottom: 14px;
+            }
+
+            .slide-overlay {
+                padding: 18px 12px 12px;
+            }
+
+            .slide-overlay h3 {
+                font-size: 14px;
+            }
+
+            .slide-overlay p {
+                font-size: 11px;
+            }
+
+            .slide-badge {
+                font-size: 9px;
+                padding: 3px 10px;
+                top: 8px;
+                right: 8px;
+            }
+
+            .slider-btn {
+                padding: 8px 6px;
+                width: 30px;
+                font-size: 14px;
+            }
+
+            .header h2 {
+                font-size: 22px;
+            }
+
+            .header-icon {
+                font-size: 30px;
+            }
+
+            .price-section {
+                padding: 16px 14px;
+                margin-bottom: 14px;
+            }
+
+            .price-value {
+                font-size: 30px;
+            }
+
+            .price-currency {
+                font-size: 18px;
+            }
+
+            .details-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+                margin-bottom: 14px;
+            }
+
+            .detail-item {
+                padding: 10px 8px;
+            }
+
+            .detail-icon {
+                font-size: 18px;
+            }
+
+            .detail-value {
+                font-size: 13px;
+            }
+
+            .btn {
+                padding: 10px 18px;
+                font-size: 13px;
+                min-width: 100px;
+                flex: 1 1 100%;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .error-section h2 {
+                font-size: 18px;
+            }
+
+            .slider-btn {
+                display: none;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .card {
+                padding: 14px 10px;
+                border-radius: 15px;
+            }
+
+            .header h2 {
+                font-size: 18px;
+            }
+
+            .price-value {
+                font-size: 24px;
+            }
+
+            .details-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 5px;
+            }
+
+            .detail-item {
+                padding: 8px 5px;
+            }
+
+            .detail-value {
+                font-size: 11px;
+            }
+
+            .btn {
+                font-size: 11px;
+                padding: 8px 12px;
+                min-width: 70px;
+            }
+
+            .slide-overlay h3 {
+                font-size: 12px;
+            }
+        }
+
+        @media (min-width: 481px) and (max-width: 768px) {
+            .card {
+                padding: 22px 18px;
+                max-width: 500px;
+            }
+
+            .header h2 {
+                font-size: 24px;
+            }
+
+            .price-value {
+                font-size: 34px;
+            }
+
+            .details-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .btn {
+                padding: 11px 22px;
+                font-size: 13px;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .card {
+                max-width: 550px;
+                padding: 28px 24px;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .card {
+                max-width: 600px;
+                padding: 30px 28px;
+            }
+        }
+
+        @media (max-height: 600px) and (orientation: landscape) {
+            .card {
+                max-height: 92vh;
+                padding: 12px 18px;
+            }
+
+            .slider-container {
+                max-height: 150px;
+                margin-bottom: 10px;
+            }
+
+            .slide {
+                aspect-ratio: auto;
+                height: 150px;
+            }
+
+            .slide-overlay {
+                padding: 12px 12px 10px;
+            }
+
+            .slide-overlay h3 {
+                font-size: 13px;
+            }
+
+            .slide-overlay p {
+                font-size: 10px;
+            }
+
+            .header {
+                margin-bottom: 8px;
+            }
+
+            .header h2 {
+                font-size: 20px;
+            }
+
+            .header-icon {
+                font-size: 25px;
+            }
+
+            .price-section {
+                padding: 10px 14px;
+                margin-bottom: 10px;
+            }
+
+            .price-value {
+                font-size: 26px;
+                margin: 3px 0;
+            }
+
+            .details-grid {
+                gap: 6px;
+                margin-bottom: 10px;
+            }
+
+            .detail-item {
+                padding: 6px 6px;
+            }
+
+            .detail-icon {
+                font-size: 16px;
+            }
+
+            .detail-value {
+                font-size: 12px;
+            }
+
+            .info-banner {
+                padding: 6px;
+                margin-bottom: 10px;
+            }
+
+            .btn {
+                padding: 8px 15px;
+                font-size: 12px;
+                min-width: 80px;
+            }
+
+            .action-buttons {
+                gap: 6px;
+            }
+
+            .slider-btn {
+                padding: 6px 5px;
+                width: 25px;
+                font-size: 12px;
+            }
+        }
+
+        @media print {
+            body {
+                background: white !important;
+                padding: 20px !important;
+            }
+            
+            .slider-container {
+                display: none !important;
+            }
+
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            
+            .btn {
+                display: none !important;
+            }
+            
+            .price-section {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <!-- Image Slider -->
+        <div class="slider-container">
+            <div class="slider" id="resultSlider">
+                <!-- Slide 1 -->
+                <div class="slide">
+                    <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=450&fit=crop" alt="Luxury Modern House">
+                    <div class="slide-overlay">
+                        <h3>🏰 Luxury Modern Villa</h3>
+                        <p>Premium location • 5 BHK • Smart home</p>
+                    </div>
+                    <div class="slide-badge">⭐ Premium</div>
+                </div>
+                <!-- Slide 2 -->
+                <div class="slide">
+                    <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=450&fit=crop" alt="Mediterranean Villa">
+                    <div class="slide-overlay">
+                        <h3>🌊 Mediterranean Villa</h3>
+                        <p>Sea view • 4 BHK • Private pool</p>
+                    </div>
+                    <div class="slide-badge">🌟 Luxury</div>
+                </div>
+                <!-- Slide 3 -->
+                <div class="slide">
+                    <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=450&fit=crop" alt="Modern Glass House">
+                    <div class="slide-overlay">
+                        <h3>✨ Contemporary Glass House</h3>
+                        <p>City view • 6 BHK • Infinity pool</p>
+                    </div>
+                    <div class="slide-badge">🏆 Elite</div>
+                </div>
+                <!-- Slide 4 -->
+                <div class="slide">
+                    <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&h=450&fit=crop" alt="Classic Mansion">
+                    <div class="slide-overlay">
+                        <h3>🏛️ Classic Mansion</h3>
+                        <p>Heritage style • 7 BHK • Garden</p>
+                    </div>
+                    <div class="slide-badge">👑 Royal</div>
+                </div>
+                <!-- Slide 5 -->
+                <div class="slide">
+                    <img src="https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=800&h=450&fit=crop" alt="Penthouse Suite">
+                    <div class="slide-overlay">
+                        <h3>🌆 Sky Penthouse</h3>
+                        <p>Panoramic view • 3 BHK • Terrace</p>
+                    </div>
+                    <div class="slide-badge">🌃 Exclusive</div>
+                </div>
+            </div>
+
+            <!-- Slider Controls -->
+            <button class="slider-btn prev" onclick="changeResultSlide(-1)">❮</button>
+            <button class="slider-btn next" onclick="changeResultSlide(1)">❯</button>
+            
+            <div class="slider-controls" id="resultDots">
+                <span class="slider-dot active" onclick="goToResultSlide(0)"></span>
+                <span class="slider-dot" onclick="goToResultSlide(1)"></span>
+                <span class="slider-dot" onclick="goToResultSlide(2)"></span>
+                <span class="slider-dot" onclick="goToResultSlide(3)"></span>
+                <span class="slider-dot" onclick="goToResultSlide(4)"></span>
+            </div>
+        </div>
+
+        <div class="header">
+            <span class="header-icon">🏠</span>
+            <h2>House Price Prediction</h2>
+            <p class="subtitle">Project by Anilkumar Gorantla</p>
+        </div>
+
+        {% if error %}
+            <div class="error-section">
+                <div style="font-size: 40px; margin-bottom: 5px;">⚠️</div>
+                <h2>Oops! {{ error }}</h2>
+                <p>Please try again with valid inputs</p>
+            </div>
+        {% else %}
+            <div class="price-section">
+                <div class="price-label">Estimated Market Value</div>
+                <div class="price-value">
+                    <span class="price-currency">₹</span> {{ prediction }}
+                </div>
+                <div class="price-confidence">
+                    Updated just now • Confidence: High
+                </div>
+            </div>
+
+            <div class="details-grid">
+                <div class="detail-item">
+                    <span class="detail-icon">📐</span>
+                    <div class="detail-label">Area</div>
+                    <div class="detail-value">{{ area }} sq ft</div>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-icon">🛏️</span>
+                    <div class="detail-label">Bedrooms</div>
+                    <div class="detail-value">{{ bedrooms }}</div>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-icon">🏠</span>
+                    <div class="detail-label">Property Age</div>
+                    <div class="detail-value">{{ age }} years</div>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-icon">🚗</span>
+                    <div class="detail-label">Garage</div>
+                    <div class="detail-value">{{ garage }}</div>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-icon">🏊</span>
+                    <div class="detail-label">Pool</div>
+                    <div class="detail-value">{{ pool }}</div>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-icon">💪</span>
+                    <div class="detail-label">Gym</div>
+                    <div class="detail-value">{{ gym }}</div>
+                </div>
+            </div>
+
+            <div class="info-banner">
+                <span>✅ Prediction based on {{ bedrooms }}BHK • {{ area }} sq ft</span>
+            </div>
+        {% endif %}
+
+        <div class="action-buttons">
+            <a href="/" class="btn btn-primary">🔙 Back to Home</a>
+            <a href="#" class="btn btn-secondary" onclick="window.print()">🖨️ Print</a>
+        </div>
+    </div>
+
+    <script>
+        // Result Page Slider Logic
+        let resultCurrentSlide = 0;
+        const resultTotalSlides = 5;
+        let resultAutoSlideInterval;
+
+        function updateResultSlider() {
+            const slider = document.getElementById('resultSlider');
+            slider.style.transform = `translateX(-${resultCurrentSlide * 100}%)`;
+            
+            // Update dots
+            document.querySelectorAll('#resultDots .slider-dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index === resultCurrentSlide);
+            });
+        }
+
+        function changeResultSlide(direction) {
+            resultCurrentSlide = (resultCurrentSlide + direction + resultTotalSlides) % resultTotalSlides;
+            updateResultSlider();
+            resetResultAutoSlide();
+        }
+
+        function goToResultSlide(index) {
+            resultCurrentSlide = index;
+            updateResultSlider();
+            resetResultAutoSlide();
+        }
+
+        function resetResultAutoSlide() {
+            clearInterval(resultAutoSlideInterval);
+            resultAutoSlideInterval = setInterval(() => {
+                changeResultSlide(1);
+            }, 5000);
+        }
+
+        // Touch/Swipe support for result slider
+        let resultTouchStartX = 0;
+        let resultTouchEndX = 0;
+
+        document.querySelector('.slider-container').addEventListener('touchstart', (e) => {
+            resultTouchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.querySelector('.slider-container').addEventListener('touchend', (e) => {
+            resultTouchEndX = e.changedTouches[0].screenX;
+            const difference = resultTouchStartX - resultTouchEndX;
+            if (Math.abs(difference) > 50) {
+                if (difference > 0) {
+                    changeResultSlide(1);
+                } else {
+                    changeResultSlide(-1);
+                }
+            }
+        });
+
+        // Keyboard navigation for result slider
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                changeResultSlide(-1);
+            } else if (e.key === 'ArrowRight') {
+                changeResultSlide(1);
+            }
+        });
+
+        // Auto-slide start for result page
+        resetResultAutoSlide();
+
+        // Add entrance animation for detail items
+        document.addEventListener('DOMContentLoaded', function() {
+            const items = document.querySelectorAll('.detail-item');
+            items.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(15px)';
+                setTimeout(() => {
+                    item.style.transition = 'all 0.4s ease';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, 300 + (index * 80));
+            });
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const card = document.querySelector('.card');
+            const viewportHeight = window.innerHeight;
+            const cardHeight = card.scrollHeight;
+            
+            if (cardHeight > viewportHeight * 0.98) {
+                card.style.maxHeight = '98vh';
+            }
+        });
+    </script>
+</body>
+</html>
