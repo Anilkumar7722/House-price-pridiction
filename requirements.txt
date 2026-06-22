@@ -1,6 +1,6 @@
-streamlit
+flask
+numpy
 pandas
 scikit-learn
 joblib
-matplotlib
-seaborn
+gunicorn
